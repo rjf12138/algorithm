@@ -3,18 +3,18 @@
 namespace algorithm {
 
 char bs64[66] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-int encode_base64(basic::ByteBuffer &inbuf, basic::ByteBuffer &outbuf)
+ssize_t encode_base64(basic::ByteBuffer &inbuf, basic::ByteBuffer &outbuf)
 {
     ssize_t len = inbuf.data_size();
     if (len <= 0) {
         outbuf.clear();
         return 0;
     }
-    int groups = len / 3;
-    int remain = len - groups * 3;
+    ssize_t groups = len / 3;
+    ssize_t remain = len - groups * 3;
     
     outbuf.clear();
-    for (int i = 0; i < groups; ++i) {
+    for (ssize_t i = 0; i < groups; ++i) {
         //(1) 0xFC: 1111 1100 >> 2 => 0011 1111
         outbuf += (inbuf[i * 3 + 0] & 0xFC) >> 2;
         //(1) 0xC0: 0000 0011 << 4 => 0011 0000  | (2) 0xF0: 1111 0000 >> 4 => 0000 1111 => 0011 1111
@@ -46,16 +46,16 @@ int encode_base64(basic::ByteBuffer &inbuf, basic::ByteBuffer &outbuf)
     }
 
     // 需要转换的字节数，去除补齐的'='
-    int covert_num = (remain == 0 ? outbuf.data_size() : outbuf.data_size() + remain - 3);
-    for (int i = 0; i < covert_num; ++i)
+    ssize_t covert_num = (remain == 0 ? outbuf.data_size() : outbuf.data_size() + remain - 3);
+    for (ssize_t i = 0; i < covert_num; ++i)
     {
-        outbuf[i] = bs64[outbuf[i]];
+        outbuf[i] = static_cast<basic::bufftype>(bs64[static_cast<int>(outbuf[i])]);
     }
 
     return outbuf.data_size();
 }
 
-int decode_base64(basic::ByteBuffer &inbuf, basic::ByteBuffer &outbuf)
+ssize_t decode_base64(basic::ByteBuffer &inbuf, basic::ByteBuffer &outbuf)
 {
     outbuf.clear();
     ssize_t len = inbuf.data_size();
@@ -65,7 +65,7 @@ int decode_base64(basic::ByteBuffer &inbuf, basic::ByteBuffer &outbuf)
 
     basic::ByteBuffer covbuf = inbuf;
 
-    int i = 0, j = 0;
+    ssize_t i = 0, j = 0;
     for (i = 0; i < inbuf.data_size(); ++i) {
         if (inbuf[i] == '=') {
             break;
@@ -75,12 +75,12 @@ int decode_base64(basic::ByteBuffer &inbuf, basic::ByteBuffer &outbuf)
                 break;
             }
         }
-        covbuf[i] = j;
+        covbuf[i] = static_cast<basic::bufftype>(j);
     }
     
     j = 0;
-    int groups = i / 4;
-    int remain = i - groups * 4;
+    ssize_t groups = i / 4;
+    ssize_t remain = i - groups * 4;
     for (i = 0; i < groups; ++i) {
         outbuf[j++] = covbuf[i * 4 + 0] << 2 | (covbuf[i * 4 + 1] & 0x30) >> 4;
         outbuf[j++] = (covbuf[i * 4 + 1] & 0x0F) << 4 | (covbuf[i * 4 + 2] & 0x3C) >> 2;

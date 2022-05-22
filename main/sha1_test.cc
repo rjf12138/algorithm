@@ -52,7 +52,7 @@ int main()
         for (int k = 0; k < repeatcount[j]; ++k) {
             inbuf.write_bytes(testarray[j], strlen(testarray[j]));
         }
-        int ret = sha1(inbuf, outbuf);
+        ssize_t ret = sha1(inbuf, outbuf);
         if (ret < 0)
         {
             printf("error: Sha1::sha1()\n");

@@ -91,8 +91,8 @@ int sha1_result( SHA1Context *context, uint8_t Message_Digest[SHA1HashSize])
     }
 
     for(i = 0; i < SHA1HashSize; ++i) {
-        Message_Digest[i] = context->Intermediate_Hash[i>>2]
-                            >> 8 * ( 3 - ( i & 0x03 ) );
+        Message_Digest[i] = static_cast<int8_t>(context->Intermediate_Hash[i>>2]
+                            >> 8 * ( 3 - ( i & 0x03 ) ));
     }
 
     return shaSuccess;
@@ -239,19 +239,19 @@ void SHA1PadMessage(SHA1Context *context)
     /*
      *  Store the message length as the last 8 octets
      */
-    context->Message_Block[56] = context->Length_High >> 24;
-    context->Message_Block[57] = context->Length_High >> 16;
-    context->Message_Block[58] = context->Length_High >> 8;
-    context->Message_Block[59] = context->Length_High;
-    context->Message_Block[60] = context->Length_Low >> 24;
-    context->Message_Block[61] = context->Length_Low >> 16;
-    context->Message_Block[62] = context->Length_Low >> 8;
-    context->Message_Block[63] = context->Length_Low;
+    context->Message_Block[56] = static_cast<int8_t>(context->Length_High >> 24);
+    context->Message_Block[57] = static_cast<int8_t>(context->Length_High >> 16);
+    context->Message_Block[58] = static_cast<int8_t>(context->Length_High >> 8);
+    context->Message_Block[59] = static_cast<int8_t>(context->Length_High);
+    context->Message_Block[60] = static_cast<int8_t>(context->Length_Low >> 24);
+    context->Message_Block[61] = static_cast<int8_t>(context->Length_Low >> 16);
+    context->Message_Block[62] = static_cast<int8_t>(context->Length_Low >> 8);
+    context->Message_Block[63] = static_cast<int8_t>(context->Length_Low);
 
     SHA1ProcessMessageBlock(context);
 }
 
-int sha1(basic::ByteBuffer &inbuf, basic::ByteBuffer &outbuf)
+ssize_t sha1(basic::ByteBuffer &inbuf, basic::ByteBuffer &outbuf)
 {
     if (inbuf.data_size() == 0) {
         return -1;
@@ -267,7 +267,7 @@ int sha1(basic::ByteBuffer &inbuf, basic::ByteBuffer &outbuf)
 
     unsigned char *in_array = new unsigned char[inbuf.data_size()];
     inbuf.read_only(0, in_array, inbuf.data_size());
-    err = sha1_input(&sha, (const unsigned char *) in_array, inbuf.data_size());
+    err = sha1_input(&sha, reinterpret_cast<const unsigned char *>(in_array), static_cast<uint32_t>(inbuf.data_size()));
     if (err) {
         return -1;
     }
