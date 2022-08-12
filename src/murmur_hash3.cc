@@ -9,7 +9,8 @@
 // Platform-specific functions and macros
 
 // Microsoft Visual Studio
-
+namespace algorithm
+{
 #if defined(_MSC_VER)
 
 #define FORCE_INLINE	__forceinline
@@ -326,5 +327,5 @@ void MurmurHash3_x64_128 ( const void * key, const int len,
   ((uint64_t*)out)[0] = h1;
   ((uint64_t*)out)[1] = h2;
 }
-
+}
 //-----------------------------------------------------------------------------
