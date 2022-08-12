@@ -87,6 +87,7 @@ private:
     msg_to_stream_callback msg_to_stream_error_;
     msg_to_stream_callback msg_to_stream_fatal_;
 };
+}
 
 #define SET_PRINT_LEVEL(x)  this->set_print_level(x)
 #define LOG_TRACE(...)      this->print_msg(LOG_LEVEL_TRACE, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
@@ -100,16 +101,15 @@ private:
 #define GET_MSG(LEVEL, ...)  this->get_msg(LEVEL, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
 
 
-#define SET_GLOBAL_PRINT_LEVEL(x) Logger::g_log_msg.set_print_level(x)
-#define LOG_GLOBAL_TRACE(...)  Logger::g_log_msg.print_msg(LOG_LEVEL_TRACE, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
-#define LOG_GLOBAL_DEBUG(...)  Logger::g_log_msg.print_msg(LOG_LEVEL_DEBUG, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
-#define LOG_GLOBAL_INFO(...)   Logger::g_log_msg.print_msg(LOG_LEVEL_INFO, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
-#define LOG_GLOBAL_WARN(...)   Logger::g_log_msg.print_msg(LOG_LEVEL_WARN, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
-#define LOG_GLOBAL_ERROR(...)  Logger::g_log_msg.print_msg(LOG_LEVEL_ERROR, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
-#define LOG_GLOBAL_FATAL(...)  Logger::g_log_msg.print_msg(LOG_LEVEL_FATAL, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
-#define SET_GLOBAL_CALLBACK(LEVEL, FUNC)  Logger::g_log_msg.set_stream_func(LEVEL, FUNC)
+#define SET_GLOBAL_PRINT_LEVEL(x)           basic::Logger::g_log_msg.set_print_level(x)
+#define LOG_GLOBAL_TRACE(...)               basic::Logger::g_log_msg.print_msg(LOG_LEVEL_TRACE, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
+#define LOG_GLOBAL_DEBUG(...)               basic::Logger::g_log_msg.print_msg(LOG_LEVEL_DEBUG, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
+#define LOG_GLOBAL_INFO(...)                basic::Logger::g_log_msg.print_msg(LOG_LEVEL_INFO, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
+#define LOG_GLOBAL_WARN(...)                basic::Logger::g_log_msg.print_msg(LOG_LEVEL_WARN, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
+#define LOG_GLOBAL_ERROR(...)               basic::Logger::g_log_msg.print_msg(LOG_LEVEL_ERROR, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
+#define LOG_GLOBAL_FATAL(...)               basic::Logger::g_log_msg.print_msg(LOG_LEVEL_FATAL, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
+#define SET_GLOBAL_CALLBACK(LEVEL, FUNC)    basic::Logger::g_log_msg.set_stream_func(LEVEL, FUNC)
 
-#define GLOBAL_GET_MSG(LEVEL, ...)  Logger::g_log_msg.get_msg(LEVEL, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
-}
+#define GLOBAL_GET_MSG(LEVEL, ...)          basic::Logger::g_log_msg.get_msg(LEVEL, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
 
 #endif

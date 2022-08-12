@@ -36,7 +36,7 @@ public:
     virtual ByteBuffer::iterator parse(ByteBuffer::iterator &value_start_pos, ByteBuffer::iterator &json_end_pos){return ByteBuffer::iterator();}
     
     // 将json值反序列化为字符串输出， 没有格式化
-    virtual std::string to_string(void) { return "";}
+    virtual std::string to_string(void) const { return "";}
 };
 
 // json 数值类型
@@ -48,10 +48,11 @@ public:
     ~JsonNumber(void);
 
     virtual ByteBuffer::iterator parse(ByteBuffer::iterator &value_start_pos, ByteBuffer::iterator &json_end_pos) override;
-    virtual std::string to_string(void) override;
+    virtual std::string to_string(void) const override;
 
     double to_double(void) const  {return value_;}
-    int to_int(void) const {return static_cast<int>(value_);}
+    uint64_t to_uint(void) const {return static_cast<uint64_t>(value_);}
+    int64_t to_int(void) const {return static_cast<int64_t>(value_);}
 
     bool operator==(const JsonNumber& rhs) const;
     bool operator!=(const JsonNumber& rhs) const;
@@ -72,7 +73,7 @@ public:
     ~JsonBool(void);
 
     virtual ByteBuffer::iterator parse(ByteBuffer::iterator &value_start_pos, ByteBuffer::iterator &json_end_pos) override;
-    virtual std::string to_string(void) const;
+    virtual std::string to_string(void) const override;
 
     bool to_bool(void) const  {return value_;}
 
@@ -94,7 +95,7 @@ public:
     ~JsonNull(void);
 
     virtual ByteBuffer::iterator parse(ByteBuffer::iterator &value_start_pos, ByteBuffer::iterator &json_end_pos) override;
-    virtual std::string to_string(void) const;
+    virtual std::string to_string(void) const override;
 
     bool operator==(const JsonNull& rhs) const;
     bool operator!=(const JsonNull& rhs) const;
@@ -109,12 +110,12 @@ class JsonString : public JsonType {
     friend std::ostream& operator<<(std::ostream &os, JsonString &rhs);
 public:
     explicit JsonString(void);
-    explicit JsonString(std::string val);
+    explicit JsonString(const std::string val);
     explicit JsonString(const char *val);
     ~JsonString(void);
 
     virtual ByteBuffer::iterator parse(ByteBuffer::iterator &value_start_pos, ByteBuffer::iterator &json_end_pos) override;
-    virtual std::string to_string(void) const;
+    virtual std::string to_string(void) const override;
 
     bool operator==(const JsonString& rhs) const;
     bool operator!=(const JsonString& rhs) const;
@@ -133,12 +134,13 @@ public:
     friend std::ostream& operator<<(std::ostream &os, JsonObject &rhs);
     typedef std::map<std::string, JsonValue>::iterator iterator;
 public:
-    explicit JsonObject(void);
+    JsonObject(void);
+    JsonObject(const JsonObject &jobj);
     ~JsonObject(void);
 
     // 序列化和反序列化
     virtual ByteBuffer::iterator parse(ByteBuffer::iterator &value_start_pos, ByteBuffer::iterator &json_end_pos) override;
-    virtual std::string to_string(void) override;
+    virtual std::string to_string(void) const override;
     
     // 查找元素
     JsonObject::iterator find(const std::string &key);
@@ -148,7 +150,7 @@ public:
     // 当前类型为对象时添加元素
     int add(const std::string &key, const JsonValue &value);
     // 返回元素数量
-    int size(void) const {return value_.size();}
+    int size(void) const {return static_cast<int>(value_.size());}
     // 清空元素
     void clear(void) {value_.clear();}
 
@@ -173,12 +175,13 @@ public:
     friend std::ostream& operator<<(std::ostream &os, JsonArray &rhs);
     typedef std::vector<JsonValue>::iterator iterator;
 public:
-    explicit JsonArray(void);
+    JsonArray(void);
+    JsonArray(JsonArray &jarr);
     ~JsonArray(void);
 
     // 序列化和反序列化
     virtual ByteBuffer::iterator parse(ByteBuffer::iterator &value_start_pos, ByteBuffer::iterator &json_end_pos) override;
-    virtual std::string to_string(void) override;
+    virtual std::string to_string(void) const override;
 
     // 数组或是对象删除元素
     iterator erase(const int &index);
@@ -186,7 +189,7 @@ public:
     // 当前添加元素
     int add(const JsonValue &value);
     // 返回元素数量
-    int size(void) const {return value_.size();}
+    int size(void) const {return static_cast<int>(value_.size());}
     // 清空元素
     void clear(void) {value_.clear();}
 

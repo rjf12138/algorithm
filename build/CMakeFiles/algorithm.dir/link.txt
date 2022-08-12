@@ -1,0 +1,2 @@
+/usr/bin/ar qc libalgorithmd.a CMakeFiles/algorithm.dir/src/base64.cc.o CMakeFiles/algorithm.dir/src/sha1.cc.o CMakeFiles/algorithm.dir/src/murmur_hash3.cc.o
+/usr/bin/ranlib libalgorithmd.a
