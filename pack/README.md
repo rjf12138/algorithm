@@ -9,8 +9,8 @@
 
 产物：
 
-- `~/.project_manager/repo/algorithm-0.1.0.pm`
-- `~/.project_manager/repo/algorithm-0.1.0.pm.sha256`
+- `~/.project_manager/repo/algorithm-0.1.1.pm`
+- `~/.project_manager/repo/algorithm-0.1.1.pm.sha256`
 
 包内结构：
 
@@ -23,7 +23,7 @@ algorithm/
     └── release/libalgorithm.a # -O2 -mtune=generic（可移植，无 -march=native）
 ```
 
-`manifest.json` 声明了依赖 `basic@0.1.0`。安装 algorithm 时会递归安装 basic，
+`manifest.json` 声明了依赖 `basic@0.1.1`。安装 algorithm 时会递归安装 basic，
 并把两个包的 `link_libs` 都写入使用方项目的 `deps.libs`。
 
 ## 其它项目依赖 algorithm
@@ -41,7 +41,7 @@ pm deps add algorithm -p MyApp
 - 库文件 → `MyApp/lib/{debug,release}/libalgorithm.a`
 - 依赖 `basic` 的头文件和库也会一并安装
 - `.pmproject` 写入：
-  - `dependencies`：`algorithm@0.1.0`、`basic@0.1.0`
+  - `dependencies`：`algorithm@0.1.1`、`basic@0.1.1`
   - `deps.libs`：`["algorithm", "basic"]`
 
 ## 代码里怎么引用

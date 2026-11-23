@@ -1,6 +1,6 @@
 {
   "name": "algorithm",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "path": "/home/ruanjian/workspace/project/algorithm",
   "uuid": "5afb5f75-55bb-4ed8-8cc9-a67db874ebc1",
   "build_system": "cmake",
@@ -22,7 +22,7 @@
   "dependencies": [
     {
       "name": "basic",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "lib_type": "static"
     }
   ],

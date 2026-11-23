@@ -19,7 +19,7 @@ set -e
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PKG_NAME="algorithm"
-PKG_VERSION="0.1.0"
+PKG_VERSION="0.1.1"
 FORCE_FLAG=""
 if [ "$1" = "-f" ]; then
     FORCE_FLAG="-f"

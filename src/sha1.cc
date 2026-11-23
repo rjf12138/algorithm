@@ -1,5 +1,7 @@
 #include "algorithm.h"
 
+#include <vector>
+
 namespace algorithm {
 
 #ifndef _SHA_enum_
@@ -253,32 +255,44 @@ void SHA1PadMessage(SHA1Context *context)
 
 ssize_t sha1(basic::ByteBuffer &inbuf, basic::ByteBuffer &outbuf)
 {
-    if (inbuf.data_size() == 0) {
-        return -1;
-    }
-    
     SHA1Context sha;
-    uint8_t Message_Digest[20];
+    uint8_t message_digest[20];
 
     int err = sha1_reset(&sha);
     if (err) {
-        return -1;   /* out of for j loop */
+        return -1;
     }
 
-    unsigned char *in_array = new unsigned char[inbuf.data_size()];
-    inbuf.read_only(0, in_array, inbuf.data_size());
-    err = sha1_input(&sha, reinterpret_cast<const unsigned char *>(in_array), static_cast<uint32_t>(inbuf.data_size()));
+    // 分块读取，避免一次性分配大内存，也避免把长度截断成 uint32_t
+    const ssize_t chunk_size = 64 * 1024;
+    std::vector<unsigned char> chunk(static_cast<size_t>(chunk_size));
+    const ssize_t total_size = inbuf.data_size();
+
+    for (ssize_t offset = 0; offset < total_size; ) {
+        ssize_t read_size = total_size - offset;
+        if (read_size > chunk_size) {
+            read_size = chunk_size;
+        }
+
+        if (inbuf.read_only(offset, chunk.data(), read_size) != read_size) {
+            return -1;
+        }
+
+        err = sha1_input(&sha, chunk.data(), static_cast<unsigned>(read_size));
+        if (err) {
+            return -1;
+        }
+
+        offset += read_size;
+    }
+
+    err = sha1_result(&sha, message_digest);
     if (err) {
         return -1;
     }
 
-    err = sha1_result(&sha, Message_Digest);
-    if (err) {
-        return -1;
-    }
     outbuf.clear();
-    outbuf.write_bytes(Message_Digest, 20);
-    delete[] in_array;
+    outbuf.write_bytes(message_digest, 20);
 
     return 0;
 }

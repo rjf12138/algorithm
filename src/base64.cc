@@ -97,21 +97,71 @@ ssize_t decode_base64(basic::ByteBuffer &inbuf, basic::ByteBuffer &outbuf)
     }
     input.resize(static_cast<size_t>(read_len));
 
-    std::string decoded;
-    decoded.reserve(input.size() / 4 * 3 + 3);
+    // 先做字符和 padding 校验，避免把 "YQ==junk" 这类输入当成合法数据
+    std::string clean;
+    clean.reserve(input.size());
+    size_t padding = 0;
+    bool padding_started = false;
 
-    uint32_t value = 0;
-    int bits = 0;
     for (size_t i = 0; i < input.size(); ++i) {
         unsigned char c = static_cast<unsigned char>(input[i]);
-        if (c == '=') {
-            break;
-        }
         if (c == '\r' || c == '\n' || c == ' ' || c == '\t') {
             continue;
         }
 
-        int v = base64_value(c);
+        if (c == '=') {
+            padding_started = true;
+            ++padding;
+            clean.push_back('=');
+            continue;
+        }
+
+        if (padding_started) {
+            return -1;
+        }
+        if (base64_value(c) < 0) {
+            return -1;
+        }
+        clean.push_back(static_cast<char>(c));
+    }
+
+    const size_t total = clean.size();
+    if (total == 0) {
+        return 0;
+    }
+    if (padding > 2) {
+        return -1;
+    }
+    if (padding > 0 && (total % 4) != 0) {
+        return -1;
+    }
+    if (padding == 0 && (total % 4) == 1) {
+        return -1;
+    }
+
+    const size_t data_len = total - padding;
+    if (data_len == 0) {
+        return -1;
+    }
+    if ((data_len % 4) == 1) {
+        return -1;
+    }
+    if (padding > 0) {
+        size_t remain = data_len % 4;
+        if ((remain == 2 && padding != 2) ||
+            (remain == 3 && padding != 1) ||
+            remain == 0) {
+            return -1;
+        }
+    }
+
+    std::string decoded;
+    decoded.reserve(data_len / 4 * 3 + 3);
+
+    uint32_t value = 0;
+    int bits = 0;
+    for (size_t i = 0; i < data_len; ++i) {
+        int v = base64_value(static_cast<unsigned char>(clean[i]));
         if (v < 0) {
             return -1;
         }
@@ -122,6 +172,11 @@ ssize_t decode_base64(basic::ByteBuffer &inbuf, basic::ByteBuffer &outbuf)
             bits -= 8;
             decoded.push_back(static_cast<char>((value >> bits) & 0xFF));
         }
+    }
+
+    // 未使用的低位必须是 0，拒绝非规范编码
+    if (bits > 0 && (value & ((1u << bits) - 1u)) != 0) {
+        return -1;
     }
 
     if (!decoded.empty()) {
