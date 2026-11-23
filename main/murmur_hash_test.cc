@@ -12,7 +12,7 @@ int main(void)
 
     fprintf(stdout, "================== String =================\n");
     const char *str[4] = {"hello", "hfllo", "k", "hh"};
-    for (int i = 0 ; i < 5; ++i) {
+    for (int i = 0 ; i < 4; ++i) {
         algorithm::murmurhash3_x86_32(str[i], strlen(str[i]), seed, &ret);
         fprintf(stdout, "key: %s, seed: %d, out: %d\n", str[i], seed, ret);
     }

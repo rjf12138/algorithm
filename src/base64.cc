@@ -1,100 +1,133 @@
 #include "algorithm.h"
 
+#include <string>
+#include <vector>
+
 namespace algorithm {
 
-char bs64[66] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+namespace {
+
+const char s_base64_alphabet[] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+int base64_value(unsigned char c)
+{
+    if (c >= 'A' && c <= 'Z') {
+        return c - 'A';
+    }
+    if (c >= 'a' && c <= 'z') {
+        return c - 'a' + 26;
+    }
+    if (c >= '0' && c <= '9') {
+        return c - '0' + 52;
+    }
+    if (c == '+') {
+        return 62;
+    }
+    if (c == '/') {
+        return 63;
+    }
+    return -1;
+}
+
+} // namespace
+
 ssize_t encode_base64(basic::ByteBuffer &inbuf, basic::ByteBuffer &outbuf)
 {
+    outbuf.clear();
+
     ssize_t len = inbuf.data_size();
     if (len <= 0) {
-        outbuf.clear();
         return 0;
     }
-    ssize_t groups = len / 3;
-    ssize_t remain = len - groups * 3;
-    
-    outbuf.clear();
-    for (ssize_t i = 0; i < groups; ++i) {
-        //(1) 0xFC: 1111 1100 >> 2 => 0011 1111
-        outbuf += (inbuf[i * 3 + 0] & 0xFC) >> 2;
-        //(1) 0xC0: 0000 0011 << 4 => 0011 0000  | (2) 0xF0: 1111 0000 >> 4 => 0000 1111 => 0011 1111
-        outbuf += (inbuf[i * 3 + 0] & 0x03) << 4 | (inbuf[i * 3 + 1] & 0xF0) >> 4;
-        //(2) 0x0F: 0000 1111 << 2 => 0011 1100  | (3) 0xC0: 1100 0000 >> 6 => 0000 0011 => 0011 1111 
-        outbuf += (inbuf[i * 3 + 1] & 0x0F) << 2 | (inbuf[i * 3 + 2] & 0xC0) >> 6;
-        //(3) 0x3F: 0011 1111 => 0011 1111
-        outbuf += inbuf[i * 3 + 2] & 0x3F;
+
+    std::vector<unsigned char> input(static_cast<size_t>(len));
+    ssize_t read_len = inbuf.read_only(0, input.data(), len);
+    if (read_len <= 0) {
+        return 0;
     }
-    
+
+    std::string encoded;
+    encoded.reserve(static_cast<size_t>(((read_len + 2) / 3) * 4));
+
+    ssize_t i = 0;
+    for (; i + 3 <= read_len; i += 3) {
+        uint32_t value = (static_cast<uint32_t>(input[i]) << 16) |
+                         (static_cast<uint32_t>(input[i + 1]) << 8) |
+                         static_cast<uint32_t>(input[i + 2]);
+        encoded.push_back(s_base64_alphabet[(value >> 18) & 0x3F]);
+        encoded.push_back(s_base64_alphabet[(value >> 12) & 0x3F]);
+        encoded.push_back(s_base64_alphabet[(value >> 6) & 0x3F]);
+        encoded.push_back(s_base64_alphabet[value & 0x3F]);
+    }
+
+    ssize_t remain = read_len - i;
     if (remain == 1) {
-        //(1) 0xFC: 1111 1100 >> 2 => 0011 1111
-        outbuf += (inbuf[groups * 3 + 0] & 0xFC) >> 2;
-        //(1) 0xC0: 0000 0011 << 4 => 0011 0000  | (2) 0xF0: 1111 0000 >> 4 => 0000 1111 => 0011 1111
-        outbuf += (inbuf[groups * 3 + 0] & 0x03) << 4;
-        // 剩余的用 = 补齐
-        outbuf += '=';
-        outbuf += '=';
-    }
-    else if (remain == 2) {
-        //(1) 0xFC: 1111 1100 >> 2 => 0011 1111
-        outbuf += (inbuf[groups * 3 + 0] & 0xFC) >> 2;
-        //(1) 0xC0: 0000 0011 << 4 => 0011 0000  | (2) 0xF0: 1111 0000 >> 4 => 0000 1111 => 0011 1111
-        outbuf += (inbuf[groups * 3 + 0] & 0x03) << 4 | (inbuf[groups * 3 + 1] & 0xF0) >> 4;
-        //(2) 0x0F: 0000 1111 << 2 => 0011 1100  | (3) 0xC0: 1100 0000 >> 6 => 0000 0011 => 0011 1111 
-        outbuf += (inbuf[groups * 3 + 1] & 0x0F) << 2;
-        // 剩余的用 = 补齐
-        outbuf += '=';
+        uint32_t value = static_cast<uint32_t>(input[i]) << 16;
+        encoded.push_back(s_base64_alphabet[(value >> 18) & 0x3F]);
+        encoded.push_back(s_base64_alphabet[(value >> 12) & 0x3F]);
+        encoded.push_back('=');
+        encoded.push_back('=');
+    } else if (remain == 2) {
+        uint32_t value = (static_cast<uint32_t>(input[i]) << 16) |
+                         (static_cast<uint32_t>(input[i + 1]) << 8);
+        encoded.push_back(s_base64_alphabet[(value >> 18) & 0x3F]);
+        encoded.push_back(s_base64_alphabet[(value >> 12) & 0x3F]);
+        encoded.push_back(s_base64_alphabet[(value >> 6) & 0x3F]);
+        encoded.push_back('=');
     }
 
-    // 需要转换的字节数，去除补齐的'='
-    ssize_t covert_num = (remain == 0 ? outbuf.data_size() : outbuf.data_size() + remain - 3);
-    for (ssize_t i = 0; i < covert_num; ++i)
-    {
-        outbuf[i] = static_cast<basic::bufftype>(bs64[static_cast<int>(outbuf[i])]);
-    }
-
-    return outbuf.data_size();
+    outbuf.write_bytes(encoded.data(), static_cast<ssize_t>(encoded.size()));
+    return static_cast<ssize_t>(encoded.size());
 }
 
 ssize_t decode_base64(basic::ByteBuffer &inbuf, basic::ByteBuffer &outbuf)
 {
     outbuf.clear();
+
     ssize_t len = inbuf.data_size();
     if (len <= 0) {
         return 0;
     }
 
-    basic::ByteBuffer covbuf = inbuf;
+    std::string input(static_cast<size_t>(len), '\0');
+    ssize_t read_len = inbuf.read_only(0, &input[0], len);
+    if (read_len <= 0) {
+        return 0;
+    }
+    input.resize(static_cast<size_t>(read_len));
 
-    ssize_t i = 0, j = 0;
-    for (i = 0; i < inbuf.data_size(); ++i) {
-        if (inbuf[i] == '=') {
+    std::string decoded;
+    decoded.reserve(input.size() / 4 * 3 + 3);
+
+    uint32_t value = 0;
+    int bits = 0;
+    for (size_t i = 0; i < input.size(); ++i) {
+        unsigned char c = static_cast<unsigned char>(input[i]);
+        if (c == '=') {
             break;
         }
-        for (j = 0; j < 64; ++j) {
-            if (inbuf[i] == bs64[j]) {
-                break;
-            }
+        if (c == '\r' || c == '\n' || c == ' ' || c == '\t') {
+            continue;
         }
-        covbuf[i] = static_cast<basic::bufftype>(j);
+
+        int v = base64_value(c);
+        if (v < 0) {
+            return -1;
+        }
+
+        value = (value << 6) | static_cast<uint32_t>(v);
+        bits += 6;
+        if (bits >= 8) {
+            bits -= 8;
+            decoded.push_back(static_cast<char>((value >> bits) & 0xFF));
+        }
     }
-    
-    j = 0;
-    ssize_t groups = i / 4;
-    ssize_t remain = i - groups * 4;
-    for (i = 0; i < groups; ++i) {
-        outbuf[j++] = covbuf[i * 4 + 0] << 2 | (covbuf[i * 4 + 1] & 0x30) >> 4;
-        outbuf[j++] = (covbuf[i * 4 + 1] & 0x0F) << 4 | (covbuf[i * 4 + 2] & 0x3C) >> 2;
-        outbuf[j++] = (covbuf[i * 4 + 2] & 0x03) << 6 | (covbuf[i * 4 + 3] & 0x3F);
+
+    if (!decoded.empty()) {
+        outbuf.write_bytes(decoded.data(), static_cast<ssize_t>(decoded.size()));
     }
-    
-    if (remain == 2) {
-        outbuf[j++] = covbuf[groups * 4 + 0] << 2 | (covbuf[groups * 4 + 1] & 0x30) >> 4;
-    } else if (remain == 3) {
-        outbuf[j++] = covbuf[i * 4 + 0] << 2 | (covbuf[i * 4 + 1] & 0x30) >> 4;
-        outbuf[j++] = (covbuf[i * 4 + 1] & 0x0F) << 4 | (covbuf[i * 4 + 2] & 0x3C) >> 2;
-    }
-    
-    return j;
+    return static_cast<ssize_t>(decoded.size());
 }
 
-}
+} // namespace algorithm

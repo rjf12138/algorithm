@@ -5,12 +5,12 @@
             {
                 "type": "shell",
                 "label": "compile script",
-                "command": "project",
+                "command": "pm",
                 "args": [
                     "-r"
                 ],
                 "options": {
-                    "cwd": "/home/ruanjian/workspace/project_v/algorithm"
+                    "cwd": "/home/ruanjian/workspace/project/algorithm"
                 },
                 "group": {
                     "kind": "build",

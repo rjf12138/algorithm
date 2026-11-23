@@ -1,0 +1,11 @@
+{
+  "name": "algorithm",
+  "version": "0.1.0",
+  "description": "C++ algorithm library: SHA-1, Base64, MurmurHash3, CRC",
+  "author": "ruanjian",
+  "lib_type": "static",
+  "link_libs": ["algorithm"],
+  "deps": [
+    { "name": "basic", "version": "0.1.0" }
+  ]
+}

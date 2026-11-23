@@ -1,0 +1,57 @@
+{
+  "name": "algorithm",
+  "version": "0.1.0",
+  "path": "/home/ruanjian/workspace/project/algorithm",
+  "uuid": "5afb5f75-55bb-4ed8-8cc9-a67db874ebc1",
+  "build_system": "cmake",
+  "cmake_minimum_version": "3.10",
+  "language": "CXX",
+  "cxx_standard": 11,
+  "source_dirs": [
+    "src"
+  ],
+  "include_dirs": [
+    "inc"
+  ],
+  "extern_inc_dir": "extern_inc",
+  "lib_dir": "lib",
+  "output_dir": "output",
+  "main_file": "murmur_hash_test.cc",
+  "build_mode": "debug",
+  "generate_type": "static_lib",
+  "dependencies": [
+    {
+      "name": "basic",
+      "version": "0.1.0",
+      "lib_type": "static"
+    }
+  ],
+  "deps": {
+    "libs": [
+      "basic"
+    ],
+    "lib_dirs": [],
+    "inc_dirs": [],
+    "src_dirs": []
+  },
+  "build_options": {
+    "debug": {
+      "defines": [
+        "DEBUG"
+      ],
+      "optimization": "-O0 -Wall"
+    },
+    "release": {
+      "defines": [
+        "NDEBUG"
+      ],
+      "optimization": "-O2 -Wall"
+    }
+  },
+  "targets": [
+    {
+      "name": "algorithm",
+      "type": "static_lib"
+    }
+  ]
+}
